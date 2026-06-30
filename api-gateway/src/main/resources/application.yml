@@ -52,9 +52,9 @@ spring:
                 - Path=/api/admins/**
 
             - id: ms-auth
-              uri: lb://ms-auth
+              uri: https://caring-healing-production-66e9.up.railway.app
               predicates:
-                - Path=/api/auth/**
+               - Path=/api/auth/**
 
             - id: ms-vehiculo
               uri: lb://ms-vehiculo
