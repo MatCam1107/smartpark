@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: ms-usuario
+  datasource:
+    url: jdbc:mysql://reseau.proxy.rlwy.net:33698/ms_usuario?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: root
+    password: tUFoDtYZqGZCrwigzbwgpYoSuFxUxadQ
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+server:
+  port: 8087
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    path: /doc/swagger-ui.html
+
+eureka:
+  client:
+    enabled: false  # Lo apagamos aquí para que no busque el Eureka local y de errores limpios
