@@ -26,4 +26,6 @@ springdoc:
 
 eureka:
   client:
-    enabled: false  # Lo apagamos aquí para que no busque el Eureka local y de errores limpios
+    enabled: ${EUREKA_CLIENT_ENABLED:false}
+    service-url:
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka/}
