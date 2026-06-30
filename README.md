@@ -1,173 +1,314 @@
-# 🅿️ SmartPark — Sistema de Estacionamientos Inteligentes
+# 🅿️ SmartPark — Sistema de Gestión de Estacionamientos Inteligentes
 
-Plataforma backend basada en **microservicios** para la gestión de estacionamientos: ubicaciones, reservas, pagos, vehículos, usuarios, notificaciones y revisiones.
+Backend desarrollado bajo una arquitectura de **microservicios con Spring Boot**, diseñado para administrar estacionamientos inteligentes mediante la gestión de usuarios, vehículos, reservas, pagos, ubicaciones, revisiones y notificaciones.
 
-Proyecto desarrollado para la asignatura **DSY1103 - Desarrollo FullStack I** (Duoc UC).
+Proyecto desarrollado para la asignatura **DSY1103 - Desarrollo FullStack I** de **Duoc UC**.
 
 ---
 
-## 🧱 Arquitectura
+# 📌 Contexto del proyecto
 
-El sistema sigue una arquitectura de **microservicios independientes** que se comunican vía REST y se registran en un **servidor Eureka** (descubrimiento de servicios). Un **API Gateway** centraliza el acceso y enruta las peticiones hacia cada microservicio usando balanceo de carga.
+SmartPark es una plataforma que permite administrar de forma eficiente el uso de estacionamientos inteligentes.
+
+La solución fue desarrollada utilizando una arquitectura de microservicios, permitiendo desacoplar cada funcionalidad del sistema en servicios independientes que se comunican mediante REST y son administrados a través de un servidor Eureka.
+
+El sistema implementa autenticación, administración de usuarios, vehículos, reservas, pagos, revisiones, ubicaciones, notificaciones y funciones administrativas, todo centralizado mediante un API Gateway.
+
+---
+
+# 👥 Integrantes
+
+- Nicolás Rojas Barría
+- Elvira Andrea San Martín Aguilera
+
+---
+
+# 🧱 Arquitectura del sistema
+
+El proyecto implementa una arquitectura basada en **Spring Cloud**, utilizando:
+
+- Eureka Server para descubrimiento de servicios.
+- API Gateway para centralizar todas las solicitudes.
+- Comunicación REST entre microservicios.
+- Persistencia mediante MySQL.
+- Documentación mediante Swagger/OpenAPI.
 
 ```
-                    ┌─────────────────┐
-   Cliente  ──────▶ │   API Gateway   │  (puerto 8080)
-                    └────────┬────────┘
-                             │ enruta con lb://
-                             ▼
-                    ┌─────────────────┐
-                    │  Eureka Server  │  (puerto 8761)
-                    │  (registro)     │
-                    └────────┬────────┘
-                             │ todos los ms se registran aquí
-        ┌────────────────────┼────────────────────┐
-        ▼                    ▼                     ▼
-   ms-ubicacion        ms-estacionamiento      ms-reserva   ... etc
+                    Cliente
+                       │
+                       ▼
+              ┌────────────────┐
+              │  API Gateway   │
+              │    (8080)      │
+              └────────┬───────┘
+                       │
+                lb://Microservicios
+                       │
+                       ▼
+              ┌────────────────┐
+              │ Eureka Server  │
+              │    (8761)      │
+              └────────┬───────┘
+                       │
+ ┌──────────────┬─────────────┬──────────────┬──────────────┐
+ ▼              ▼             ▼              ▼
+Auth        Usuario      Reserva       Estacionamiento
+ ▼              ▼             ▼              ▼
+Pago      Vehículo     Ubicación     Notificación
+                ▼
+             Revisión
+                ▼
+             Administración
 ```
 
-### Microservicios y puertos
+---
 
-| Módulo               | Puerto | Descripción                                    |
-|----------------------|--------|------------------------------------------------|
-| `eureka-server`      | 8761   | Servidor de registro y descubrimiento          |
-| `api-gateway`        | 8080   | Puerta de entrada única (enrutamiento)          |
-| `ms-ubicacion`       | 8085   | Ubicaciones geográficas                         |
-| `ms-estacionamiento` | 8086   | Estacionamientos disponibles                    |
-| `ms-usuario`         | 8087   | Usuarios de la plataforma                       |
-| `ms-pago`            | 8088   | Pagos y tipos de pago                           |
-| `ms-reserva`         | 8089   | Reservas de estacionamiento                     |
-| `ms-notificacion`    | 8090   | Notificaciones a usuarios                       |
-| `ms-revision`        | 8091   | Reseñas y calificaciones                        |
-| `ms-admin`           | 8092   | Acciones administrativas                        |
-| `ms-auth`            | 8093   | Registro e inicio de sesión                     |
-| `ms-vehiculo`        | 8094   | Vehículos de los usuarios                       |
+# 📦 Microservicios implementados
+
+| Microservicio | Puerto | Función |
+|---------------|--------|---------|
+| Eureka Server | 8761 | Registro y descubrimiento de servicios |
+| API Gateway | 8080 | Punto único de acceso |
+| ms-auth | 8093 | Autenticación |
+| ms-usuario | 8087 | Gestión de usuarios |
+| ms-vehiculo | 8094 | Gestión de vehículos |
+| ms-estacionamiento | 8086 | Gestión de estacionamientos |
+| ms-reserva | 8089 | Gestión de reservas |
+| ms-pago | 8088 | Gestión de pagos |
+| ms-ubicacion | 8085 | Gestión de ubicaciones |
+| ms-notificacion | 8090 | Gestión de notificaciones |
+| ms-revision | 8091 | Gestión de revisiones |
+| ms-admin | 8092 | Administración del sistema |
 
 ---
 
-## 🛠️ Tecnologías
+# 🔄 Comunicación entre microservicios
 
-- **Java 21**
-- **Spring Boot 4.0.6** / **Spring Cloud 2025.1.1**
-- **Spring Data JPA** + **MySQL**
-- **Spring Cloud Gateway** (API Gateway)
-- **Spring Cloud Netflix Eureka** (descubrimiento de servicios)
-- **WebClient** (comunicación entre microservicios)
-- **JUnit 5 + Mockito** (pruebas unitarias)
-- **springdoc-openapi / Swagger UI** (documentación)
-- **Docker / Docker Compose** (despliegue)
-- **Lombok** (reducción de boilerplate)
+Todos los microservicios se registran automáticamente en **Eureka Server**.
+
+El **API Gateway** consulta Eureka para descubrir dinámicamente los servicios disponibles y enrutar las solicitudes mediante balanceo de carga utilizando direcciones del tipo:
+
+```
+lb://MS-USUARIO
+lb://MS-AUTH
+lb://MS-RESERVA
+```
+
+La comunicación entre microservicios se realiza mediante **WebClient**, evitando dependencias directas entre ellos.
 
 ---
 
-## ▶️ Cómo ejecutar (local)
+# 🛠 Tecnologías utilizadas
 
-> Requisitos: Java 21, Maven (incluido vía `mvnw`) y MySQL corriendo en `localhost:3306`.
+- Java 21
+- Spring Boot 4
+- Spring Cloud
+- Spring Cloud Gateway
+- Spring Cloud Netflix Eureka
+- Spring Data JPA
+- MySQL
+- WebClient
+- Swagger / OpenAPI
+- Docker
+- Docker Compose
+- Maven
+- Lombok
+- JUnit 5
+- Mockito
 
-**El orden importa:** primero Eureka, luego los microservicios.
+---
+
+# ▶️ Ejecución local
+
+## Requisitos
+
+- Java 21
+- Maven
+- MySQL
+- Docker (opcional)
+
+## Orden de ejecución
+
+1. Eureka Server
+2. API Gateway
+3. Microservicios
+
+Ejemplo:
 
 ```bash
-# 1. Levantar el servidor Eureka
 cd eureka-server
 ./mvnw spring-boot:run
 
-# 2. En otra terminal, levantar el API Gateway
 cd api-gateway
 ./mvnw spring-boot:run
 
-# 3. Levantar los microservicios que necesites (cada uno en su terminal)
-cd ms-ubicacion
+cd ms-usuario
 ./mvnw spring-boot:run
 ```
 
-Una vez arriba, el dashboard de Eureka muestra los servicios registrados:
-👉 **http://localhost:8761**
+Dashboard Eureka:
 
-> 💡 Con 8 GB de RAM se recomienda levantar solo los microservicios que vayas a probar, no los 11 a la vez.
+```
+http://localhost:8761
+```
 
 ---
 
-## 🧪 Pruebas unitarias
+# ☁️ Despliegue remoto
 
-Cada microservicio incluye pruebas unitarias con **JUnit 5 + Mockito** que validan la lógica de negocio mockeando los repositorios (no requieren base de datos).
+Para demostrar el funcionamiento de la arquitectura distribuida, parte del proyecto fue desplegado utilizando **Railway**.
 
-Ejecutar las pruebas de un microservicio:
+Servicios desplegados:
+
+- Eureka Server
+- API Gateway
+- MySQL
+- ms-auth
+- ms-usuario
+
+Debido a las limitaciones del plan gratuito de Railway, el resto de los microservicios mantiene la misma configuración y puede desplegarse utilizando el mismo procedimiento.
+
+---
+
+# 🧪 Pruebas unitarias
+
+Cada microservicio incorpora pruebas unitarias utilizando:
+
+- JUnit 5
+- Mockito
+
+Las pruebas verifican:
+
+- Servicios
+- Controladores
+- Lógica de negocio
+- Mock de repositorios
+
+Ejecución:
 
 ```bash
-cd ms-usuario
 ./mvnw test
 ```
 
-- **Pruebas de servicio** (`*ServiceTest`): usan `@ExtendWith(MockitoExtension.class)`, mockean el repositorio con `@Mock` e inyectan el servicio con `@InjectMocks`.
-- **Pruebas de controlador** (`*ControllerTest`): usan `@WebMvcTest` con `MockMvc` y reemplazan el servicio con `@MockitoBean`.
+---
+
+# 📖 Documentación Swagger
+
+Cada microservicio posee documentación OpenAPI.
+
+Swagger local:
+
+```
+http://localhost:PUERTO/doc/swagger-ui.html
+```
+
+Ejemplo:
+
+```
+http://localhost:8085/doc/swagger-ui.html
+```
 
 ---
 
-## 📖 Documentación (Swagger)
+# 🐳 Docker
 
-Con un microservicio levantado, su documentación interactiva está en:
+El proyecto incorpora:
 
-```
-http://localhost:<puerto>/doc/swagger-ui.html
-```
+- Dockerfile por microservicio.
+- docker-compose.yml.
 
-Ejemplo: http://localhost:8085/doc/swagger-ui.html (ms-ubicacion)
-
----
-
-## 🐳 Despliegue con Docker
-
-El proyecto incluye un `Dockerfile` por módulo y un `docker-compose.yml` en la raíz.
-
-Levantar la base de datos MySQL + un microservicio (ejemplo, ms-ubicacion):
+Levantar servicios:
 
 ```bash
-docker compose up mysql ms-ubicacion
+docker compose up
 ```
 
-Para reconstruir tras cambios en el código:
+Reconstrucción:
 
 ```bash
-docker compose up --build mysql ms-ubicacion
+docker compose up --build
 ```
 
-Detener todo:
+Detener:
 
 ```bash
 docker compose down
 ```
 
-> El MySQL del contenedor se expone en el puerto **3307** (para no chocar con un MySQL/XAMPP local en 3306).
-
 ---
 
-## 📂 Estructura de un microservicio
+# 📂 Estructura del proyecto
 
 ```
-ms-ejemplo/
-├── src/main/java/com/smartpark/ms_ejemplo/
-│   ├── controller/   → endpoints REST
-│   ├── service/      → lógica de negocio
-│   ├── repository/   → acceso a datos (JPA)
-│   ├── model/        → entidades
-│   ├── dto/          → objetos de transferencia (Request/Response)
-│   ├── config/       → SwaggerConfig, DataInitializer
-│   └── exception/    → GlobalExceptionHandler
-├── src/test/java/... → pruebas unitarias
-├── src/main/resources/application.yml
-├── Dockerfile
-└── pom.xml
+smartpark/
+
+api-gateway/
+
+eureka-server/
+
+ms-auth/
+
+ms-usuario/
+
+ms-vehiculo/
+
+ms-estacionamiento/
+
+ms-reserva/
+
+ms-pago/
+
+ms-ubicacion/
+
+ms-notificacion/
+
+ms-revision/
+
+ms-admin/
+
+docker-compose.yml
+
+README.md
 ```
 
-Patrón usado: **Controller → Service → Repository** con **DTOs** para entrada/salida.
+Todos los microservicios implementan la estructura:
+
+```
+Controller
+↓
+Service
+↓
+Repository
+↓
+Entity
+```
+
+además de:
+
+- DTO
+- Config
+- Exception Handler
+- SwaggerConfig
+- DataInitializer
 
 ---
 
-## 👥 Equipo y gestión
+# 📋 Gestión del proyecto
 
-- **Repositorio GitHub:** https://github.com/NicoRojasBarria/smartpark
-- **Gestión de tareas:** Trello
+Herramienta utilizada:
+
+- Trello *(agregar enlace)*
 
 ---
 
-_Proyecto académico — Duoc UC, 2025._
+# 🔗 Repositorio GitHub
+
+Repositorio oficial:
+
+**https://github.com/MatCam1107/smartpark**
+
+---
+
+# 📄 Proyecto académico
+
+Proyecto desarrollado para la asignatura **DSY1103 - Desarrollo FullStack I** de **Duoc UC** utilizando una arquitectura de microservicios basada en Spring Boot y Spring Cloud.
