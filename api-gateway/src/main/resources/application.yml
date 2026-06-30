@@ -17,7 +17,7 @@ spring:
                 - Path=/api/estacionamientos/**
 
             - id: ms-usuario
-              uri: lb://ms-usuario
+              uri: https://agile-motivation-production-edd0.up.railway.app
               predicates:
                 - Path=/api/usuarios/**
 
